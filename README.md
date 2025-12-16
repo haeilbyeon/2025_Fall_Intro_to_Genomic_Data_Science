@@ -1,9 +1,7 @@
-# 2025_Fall_Intro_to_Genomic_Data_Science
-
+# Metagenomic Preprocessing and Microbial Community Analyses
 # [Linux] Preprocessing metagenomic datasets.
 Step 1. Trimgalore
 Step 2. Superdeduper
-
 # [Python] Downstream analyses (Alpha and Beta diversity analyses)
 Step 3. Relative abundance bar plots
 Step 4. Alpha diversity plots (Shannon, ...)
