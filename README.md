@@ -2,13 +2,14 @@
 
 # [Linux] Preprocessing metagenomic datasets.
 Step 1. Trimgalore
-#!/bin/bash
-#SBATCH --job-name=trim_galore_G5
-#SBATCH --account=leaph
-#SBATCH --partition=normal_q
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+
+    #!/bin/bash
+    #SBATCH --job-name=trim_galore_G5
+    #SBATCH --account=leaph
+    #SBATCH --partition=normal_q
+    #SBATCH --nodes=1
+    #SBATCH --ntasks=1
+    #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
 #SBATCH --output=trim_galore.%j.out
