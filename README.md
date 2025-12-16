@@ -1,13 +1,13 @@
 # 2025_Fall_Intro_to_Genomic_Data_Science
 
 # [Linux] Preprocessing metagenomic datasets.
-# Step 1. Trimgalore
-# Step 2. Superdeduper
+Step 1. Trimgalore
+Step 2. Superdeduper
 
 # [Python] Downstream analyses (Alpha and Beta diversity analyses)
-# Step 3. Relative abundance bar plots
-# Step 4. Alpha diversity plots (Shannon, ...)
-# Step 5. Beta diversity plots (PCoA)
+Step 3. Relative abundance bar plots
+Step 4. Alpha diversity plots (Shannon, ...)
+Step 5. Beta diversity plots (PCoA)
 
 
 
