@@ -480,7 +480,158 @@ For each level (Phylum, Class, Order, Family, Genus, Species):
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Alpha%20diversity%20plot.png)
 
-Step 4. Beta diversity plots
+
+Step 4. Beta diversity plot
+
+
+NOTE: Beta diversity analysis measures how different microbial communities are between samples (for example, between sites), based on their composition and relative abundances.
+
+0) Import libraries
+
+pandas / numpy: handle tables and numeric calculations.
+
+matplotlib / seaborn: make plots.
+
+scikit-bio:
+
+beta_diversity: calculates distance between samples.
+
+pcoa: converts distances into coordinates for plotting.
+
+permanova: tests whether groups are significantly different.
+
+scipy + Ellipse: draw 95% confidence ellipses on the PCoA plot.
+
+1) Define input files (by taxonomic level)
+
+level_files tells Python where the Bracken count tables are for:
+
+Phylum, Class, Order, Family, Genus, Species
+
+The same beta diversity analysis will be repeated for each level.
+
+2) Map samples to sites
+
+site_table links:
+
+Sample ID → Sampling site (RCR01, BRB01, RCR0P)
+
+site_order controls the plotting order so sites always appear consistently.
+
+site_colors assigns one color to each site in the PCoA plot.
+
+3) Convert raw counts to relative abundance
+
+Function: compute_relative_abundance()
+
+What it does:
+
+Takes raw read counts.
+
+Converts values to numbers and replaces missing values with 0.
+
+Divides each count by the total reads of that sample.
+
+Outputs relative abundance (0–1) for each taxon in each sample.
+
+This step is important because Bray–Curtis compares relative composition, not sequencing depth.
+
+4) Draw 95% confidence ellipses
+
+Function: draw_confidence_ellipse()
+
+What it does:
+
+Uses the spread of points for each site in PCoA space.
+
+Draws an ellipse that represents 95% of the variation for that site.
+
+Helps visualize how tightly or loosely samples cluster.
+
+5) Main analysis loop (done for each taxonomic level)
+5-1) Read the Bracken count table
+df_counts = pd.read_csv(path)
+
+5-2) Compute relative abundance
+rel = compute_relative_abundance(df_counts)
+
+5-3) Reformat the table
+
+Transpose the table so:
+
+Rows = samples
+
+Columns = taxa
+
+This format is required by scikit-bio.
+
+5-4) Attach site metadata
+
+Matches each sample to its site.
+
+Drops samples with missing site information (if any).
+
+This ensures sample order matches the distance matrix.
+
+5-5) Calculate Bray–Curtis distance
+bc_dm = beta_diversity(
+    metric="braycurtis",
+    counts=table.values,
+    ids=sample_ids
+)
+
+
+This produces a matrix describing how different every pair of samples is.
+
+5-6) Run PERMANOVA
+permanova_result = permanova(
+    distance_matrix=bc_dm,
+    grouping=grouping,
+    permutations=999
+)
+
+
+Tests whether microbial community composition differs between sites.
+
+Prints a p-value showing whether site explains significant variation.
+
+5-7) Perform PCoA
+pcoa_res = pcoa(bc_dm)
+
+
+Converts distances into coordinates (PCoA1, PCoA2).
+
+Makes it possible to visualize differences in 2D space.
+
+5-8) Plot PCoA results
+
+For each site:
+
+Plot sample points.
+
+Color points by site.
+
+Draw a 95% confidence ellipse.
+
+Plot also shows:
+
+Percent variance explained by PCoA1 and PCoA2.
+
+Dashed reference lines at 0.
+
+PERMANOVA p-value on the plot.
+
+Final output
+
+For each taxonomic level, the script produces:
+
+A Bray–Curtis PCoA plot
+
+Samples colored by site
+
+95% confidence ellipses
+
+PERMANOVA result showing statistical significance
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Beta%20diversity%20plot.png)
 
