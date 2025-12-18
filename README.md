@@ -205,35 +205,36 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 
 # [Python] Downstream analyses of microbial communities
 
-Step 3. Alpha diversity plots
+**Step 3. Alpha diversity plots**
 
 NOTE: Alpha diversity analysis measures the diversity within a single sample, describing how many taxa are present (richness) and how evenly they are distributed (evenness).
 
-**0) Import libraries**
 
+**0) Import libraries**
  - pandas / numpy: handle tables and simple math.
  - seaborn / matplotlib: make plots.
  - scipy.stats.kruskal: runs the Kruskal–Wallis test (overall difference between groups).
  - statannotations: adds p-value “stars/brackets” on the plot.
  - scikit-bio alpha: calculates alpha diversity indices (Shannon, Simpson, Chao1, ACE).
 
+
 **1) Tell Python where the data files are (by taxonomic level)**
 
 level_files is a dictionary like:
-
  - Phylum → path to Phylum count table
  - Class → path to Class count table …and so on.
 
 So the script can repeat the same analysis for each level automatically.
 
+
 **2) Define which sample belongs to which site**
 
 site_table is a small table that maps:
-
 Sample ID (e.g., 21-2672)
 → Site (e.g., RCR01)
 
 site_order = ["RCR01", "BRB01", "RCR0P"] forces plots to always show sites in this order.
+
 
 **3) Choose which alpha diversity metrics to compute**
 
@@ -241,12 +242,12 @@ alpha_metrics = ["Shannon", "Simpson", "Chao1", "ACE"]
 
 These are different ways to summarize “how diverse” each sample is.
 
+
 **4) Compute alpha diversity for each sample**
 
 Function: compute_alpha_indices(count_df)
 
 What it does:
-
  1. Assumes the first column is the taxon name (like species/genus names).
  2. Converts the remaining columns into numeric counts (fills missing with 0, makes integers).
  3. For each sample column, it calculates:
@@ -254,24 +255,20 @@ What it does:
   - Simpson (dominance/evenness-related)
   - Chao1 (richness estimator)
   - ACE (another richness estimator)
-
  4. Returns a new table like:
-
 | Sample | Shannon | Simpson | Chao1 | ACE |
+
 
 **5) Plot one metric: boxplot + dots + statistics**
 
 Function: plot_alpha_panel(ax, data, level_name, metric)
 
 For one metric (ex: Shannon):
-
  1. Kruskal–Wallis test across the 3 sites
   - Gives one p-value: “Is any site different overall?”
-
  2. Draws:
   - Boxplot per site (distribution)
   - Swarmplot dots (each individual sample point)
-
  3. Runs pairwise Mann–Whitney tests between:
   - RCR01 vs BRB01
   - RCR01 vs RCR0P
@@ -280,15 +277,13 @@ For one metric (ex: Shannon):
 Then it annotates the plot with brackets/p-values.
 
  4. Expands the y-axis a bit so annotations fit.
-
  5. Writes the Kruskal–Wallis p-value at the top.
-
  6. Draws red dashed lines showing the mean value for each site.
+
 
 **6) Loop through every taxonomic level and make a 2×2 panel plot**
 
 For each level (Phylum, Class, Order, Family, Genus, Species):
-
  1. Read the CSV (pd.read_csv(path)).
  2. Compute alpha metrics (compute_alpha_indices).
  3. Merge with site info (pd.merge(..., site_table ...)) so each sample has a Site label.
