@@ -483,9 +483,9 @@ For each level (Phylum, Class, Order, Family, Genus, Species):
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Alpha%20diversity%20plot.png)
 
-Result from Figure 1. 
-    At the genus level, alpha diversity did not differ significantly among sampling sites. Shannon and Simpson indices showed similar diversity and evenness across RCR01, BRB01, and RCR0P (Kruskal–Wallis test, p > 0.05), indicating comparable community structure among sites. Likewise, richness-based estimators (Chao1 and ACE) revealed no significant site-specific differences (p > 0.05), suggesting that overall taxonomic richness was consistent across locations.
+**Result from Figure 1.**
 
+_At the genus level, alpha diversity did not differ significantly among sampling sites. Shannon and Simpson indices showed similar diversity and evenness across RCR01, BRB01, and RCR0P (Kruskal–Wallis test, p > 0.05), indicating comparable community structure among sites. Likewise, richness-based estimators (Chao1 and ACE) revealed no significant site-specific differences (p > 0.05), suggesting that overall taxonomic richness was consistent across locations._
 
 **Step 4. Beta diversity plot**
 
@@ -605,7 +605,9 @@ For each taxonomic level, the script produces:
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Beta%20diversity%20plot.png)
 
+**Result from Figure 2.**
 
+_Bray–Curtis-based PCoA at the genus level showed substantial overlap in microbial community composition among sites. Samples from RCR01, BRB01, and RCR0P did not form distinct clusters, and 95% confidence ellipses largely overlapped in ordination space. Consistent with this pattern, PERMANOVA indicated no significant differences in community composition among sites (PERMANOVA, p = 0.820), suggesting limited site-driven variation in microbial assemblages._
 
 
 
