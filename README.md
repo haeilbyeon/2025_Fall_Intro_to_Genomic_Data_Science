@@ -207,7 +207,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 
 Step 3. Alpha diversity plots
 
-
+https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/issues/1#issue-3740933753
 
 Step 4. Beta diversity plots
 
