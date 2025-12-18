@@ -4,7 +4,7 @@
 
 **Step 1. Trimgalore**
 
-The purpose of TrimGalore is to trim sequences, remove short sequences, and remove sequences with low quality scores.
+NOTE: The purpose of TrimGalore is to trim sequences, remove short sequences, and remove sequences with low quality scores.
 
 Before running the analysis, first create a directory for all TrimGalore output files.
 
@@ -19,10 +19,10 @@ TrimGalore was run using a bash script: 01_trim_galore_job.slurm
  - Minimum sequence length (To replicate the paper, we used 60)
 
 **Inputs:** Raw paired FASTQ/FASTQ.GZ files for each sample
- - Example: SRR17048876_1.fastq and SRR17048876_2.fastq
+ - Example: XX_1.fastq and XX_2.fastq
 
 **Outputs:** Trimmed FASTQ files, .html and .zip FastQC output files, and a .txt trimming report file for raw sequence file
- - Example: SRR17048876_1_val_1.fq, SRR17048876_1_val_1_fastqc.html, SRR17048876_1_val_1_fastqc.zip, and SRR17048876_1.fastq_trimming_report.txt
+ - Example: XX_1_val_1.fq, XX_1_val_1_fastqc.html, XX_1_val_1_fastqc.zip, and XX_1.fastq_trimming_report.txt
 
 **What the script does:**
 
@@ -37,7 +37,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 **Script: 01_trim_galore_job.slurm**
 
     #!/bin/bash
-    #SBATCH --job-name=trim_galore_G5
+    #SBATCH --job-name=trim_galore
     #SBATCH --account=leaph
     #SBATCH --partition=normal_q
     #SBATCH --nodes=1
@@ -78,7 +78,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 
 **Step 2. Superdeduper**
 
-The purpose of SuperDeduper is to remove PCR and optical duplicate reads from paired-end FASTQ files generated after adapter trimming (Trim Galore Step). This step ensures that downstream analyses such as assembly or host mapping are not biased by artificially duplicated reads.
+NOTE: The purpose of SuperDeduper is to remove PCR and optical duplicate reads from paired-end FASTQ files generated after adapter trimming (Trim Galore Step). This step ensures that downstream analyses such as assembly or host mapping are not biased by artificially duplicated reads.
 
 Before running the analysis, first create a directory for all SuperDeduper output files:
 
@@ -128,11 +128,11 @@ Once the conda environment was set up, SuperDeduper analysis was run using a bas
 
 **Inputs:** Paired FASTQ/FASTQ.GZ files from TrimGalore output
 
- - Example: SRR17048876_1_val_1.fq and SRR17048876_1_val_.fq
+ - Example: XX_1_val_1.fq and XX_1_val_.fq
 
 **Outputs:** Deduplicated paired FASTQ files
 
- - Example: SRR17048876_R1.fastq.gz and SRR17048876_R2.fastq.gz
+ - Example: XX_R1.fastq.gz and XX_R2.fastq.gz
 
 **What the script does:**
 
@@ -151,7 +151,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 **Script: 02_run_superdeduper_cpu.slurm**
 
     #!/bin/bash
-    #SBATCH --job-name=sdeduper_new       # Job name shown in squeue and logs
+    #SBATCH --job-name=superdeduper       # Job name shown in squeue and logs
     #SBATCH --account=leaph          # Project/account to charge compute to
     #SBATCH --partition=normal_q          # Queue/partition to run on
     #SBATCH --time=24:00:00               # Walltime limit (HH:MM:SS)
@@ -204,11 +204,12 @@ Once all batch script parameters and filepaths are updated in the script, naviga
     echo "[DONE] Pipeline finished."      # Final message when loop completes
 
 # [Python] Downstream analyses of microbial communities
-Step 3. Relative abundance bar plots
 
-Step 4. Alpha diversity plots
+Step 3. Alpha diversity plots
 
-Step 5. Beta diversity plots
+
+
+Step 4. Beta diversity plots
 
 
 
