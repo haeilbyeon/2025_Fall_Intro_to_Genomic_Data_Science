@@ -2,7 +2,7 @@
 
 # [Linux] Preprocessing metagenomic datasets
 
-**Step 1. Trimgalore**
+# **Step 1. Trimgalore**
 
 NOTE: The purpose of TrimGalore is to trim sequences, remove short sequences, and remove sequences with low quality scores.
 
