@@ -207,21 +207,297 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 
 Step 3. Alpha diversity plots
 
+NOTE: Alpha diversity analysis measures the diversity within a single sample, describing how many taxa are present (richness) and how evenly they are distributed (evenness).
+
+**0) Import libraries**
+
+ - pandas / numpy: handle tables and simple math.
+ - seaborn / matplotlib: make plots.
+ - scipy.stats.kruskal: runs the Kruskal–Wallis test (overall difference between groups).
+ - statannotations: adds p-value “stars/brackets” on the plot.
+ - scikit-bio alpha: calculates alpha diversity indices (Shannon, Simpson, Chao1, ACE).
+
+**1) Tell Python where the data files are (by taxonomic level)**
+
+level_files is a dictionary like:
+
+ - Phylum → path to Phylum count table
+ - Class → path to Class count table …and so on.
+
+So the script can repeat the same analysis for each level automatically.
+
+**2) Define which sample belongs to which site**
+
+site_table is a small table that maps:
+
+Sample ID (e.g., 21-2672)
+→ Site (e.g., RCR01)
+
+site_order = ["RCR01", "BRB01", "RCR0P"] forces plots to always show sites in this order.
+
+**3) Choose which alpha diversity metrics to compute**
+
+alpha_metrics = ["Shannon", "Simpson", "Chao1", "ACE"]
+
+These are different ways to summarize “how diverse” each sample is.
+
+**4) Compute alpha diversity for each sample**
+
+Function: compute_alpha_indices(count_df)
+
+What it does:
+
+ 1. Assumes the first column is the taxon name (like species/genus names).
+ 2. Converts the remaining columns into numeric counts (fills missing with 0, makes integers).
+ 3. For each sample column, it calculates:
+  - Shannon (diversity with evenness)
+  - Simpson (dominance/evenness-related)
+  - Chao1 (richness estimator)
+  - ACE (another richness estimator)
+
+ 4. Returns a new table like:
+
+| Sample | Shannon | Simpson | Chao1 | ACE |
+
+**5) Plot one metric: boxplot + dots + statistics**
+
+Function: plot_alpha_panel(ax, data, level_name, metric)
+
+For one metric (ex: Shannon):
+
+ 1. Kruskal–Wallis test across the 3 sites
+  - Gives one p-value: “Is any site different overall?”
+
+ 2. Draws:
+  - Boxplot per site (distribution)
+  - Swarmplot dots (each individual sample point)
+
+ 3. Runs pairwise Mann–Whitney tests between:
+  - RCR01 vs BRB01
+  - RCR01 vs RCR0P
+  - BRB01 vs RCR0P
+
+Then it annotates the plot with brackets/p-values.
+
+ 4. Expands the y-axis a bit so annotations fit.
+
+ 5. Writes the Kruskal–Wallis p-value at the top.
+
+ 6. Draws red dashed lines showing the mean value for each site.
+
+**6) Loop through every taxonomic level and make a 2×2 panel plot**
+
+For each level (Phylum, Class, Order, Family, Genus, Species):
+
+ 1. Read the CSV (pd.read_csv(path)).
+ 2. Compute alpha metrics (compute_alpha_indices).
+ 3. Merge with site info (pd.merge(..., site_table ...)) so each sample has a Site label.
+ 4. Create a multi-panel figure (2 columns × enough rows).
+ 5. Plot all 4 metrics (Shannon/Simpson/Chao1/ACE), one per panel.
+ 6. Show the figure.
+
+**Script**
+
+    import numpy as np
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from scipy.stats import kruskal
+    from statannotations.Annotator import Annotator
+    from skbio.diversity import alpha as skbio_alpha
+    
+    # ============================================
+    # 0. File paths for each taxonomic level
+    # ============================================
+    
+    level_files = {
+        "Phylum":  r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Phylum\bracken_Phylum_new_est_reads_matrix.csv",
+        "Class":   r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Class\bracken_Class_new_est_reads_matrix.csv",
+        "Order":   r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Order\bracken_Order_new_est_reads_matrix.csv",
+        "Family":  r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Family\bracken_Family_new_est_reads_matrix.csv",
+        "Genus":   r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Genus\bracken_Genus_new_est_reads_matrix.csv",
+        "Species": r"C:\Users\dygks\Downloads\Research_MST\Original_data\MG_Bracken_using_DB_LEAPH_output\Species\bracken_Species_new_est_reads_matrix.csv",
+    }
+    
+    # ============================================
+    # 1. Sample ↔ Site mapping and site order
+    # ============================================
+    
+    site_order = ["RCR01", "BRB01", "RCR0P"]
+    
+    site_table = pd.DataFrame({
+        "Sample": [
+            "21-2672", "21-2688", "21-3862",
+            "21-2673", "21-2689", "21-3863",
+            "21-2674", "21-2690", "21-3864",
+        ],
+        "Site": [
+            "RCR01", "RCR01", "RCR01",
+            "BRB01", "BRB01", "BRB01",
+            "RCR0P", "RCR0P", "RCR0P",
+        ],
+    })
+    site_table["Site"] = pd.Categorical(
+        site_table["Site"],
+        categories=site_order,
+        ordered=True
+    )
+    
+    # Alpha metrics to calculate
+    alpha_metrics = ["Shannon", "Simpson", "Chao1", "ACE"]
+    
+    
+    # ============================================
+    # 2. Compute alpha indices
+    # ============================================
+    
+    def compute_alpha_indices(count_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Compute Shannon, Simpson, Chao1, ACE for each sample using scikit-bio.
+        """
+        taxon_col = count_df.columns[0]
+    
+        # Clean & convert counts to integers (required for ACE)
+        counts_only = (
+            count_df
+            .set_index(taxon_col)
+            .apply(pd.to_numeric, errors="coerce")
+            .fillna(0)
+            .astype(int)
+        )
+    
+        records = []
+        for sample in counts_only.columns:
+            counts = counts_only[sample].values
+    
+            shannon = skbio_alpha.shannon(counts)
+            simpson = skbio_alpha.simpson(counts)
+            chao1 = skbio_alpha.chao1(counts)
+            ace = skbio_alpha.ace(counts)
+    
+            records.append({
+                "Sample": sample,
+                "Shannon": shannon,
+                "Simpson": simpson,
+                "Chao1": chao1,
+                "ACE": ace
+            })
+    
+        return pd.DataFrame(records)
+    
+    
+    # ============================================
+    # 3. Plotting function (ticks visible, no rotation)
+    # ============================================
+    
+    def plot_alpha_panel(ax, data: pd.DataFrame, level_name: str, metric: str):
+        """
+        Creates a boxplot + swarmplot for a single alpha metric,
+        includes KW test, pairwise Mann-Whitney, annotation,
+        and visible ticks (no rotation on x-axis labels).
+        """
+        data = data.copy()
+        data["Site"] = pd.Categorical(data["Site"], categories=site_order, ordered=True)
+    
+        # ---------- Kruskal–Wallis ----------
+        grouped = [group[metric].values for _, group in data.groupby("Site")]
+        kw_stat, kw_p = kruskal(*grouped)
+    
+        # ---------- Pairwise comparisons ----------
+        pairs = [("RCR01", "BRB01"),
+                 ("RCR01", "RCR0P"),
+                 ("BRB01", "RCR0P")]
+    
+        # ---------- Plot ----------
+        sns.boxplot(x="Site", y=metric, data=data, ax=ax,
+                    palette="Set2", showfliers=False)
+        sns.swarmplot(x="Site", y=metric, data=data,
+                      ax=ax, color="grey", s=6, alpha=0.8, edgecolor="black")
+    
+        # ---------- Stat annotation ----------
+        annot = Annotator(ax, pairs, data=data, x="Site", y=metric)
+        annot.configure(test='Mann-Whitney', comparisons_correction=None, verbose=0)
+        annot.apply_test()
+        annot.annotate()
+    
+        # ---------- Extend Y limits ----------
+        y_min, y_max = ax.get_ylim()
+        ax.set_ylim(y_min - 0.10 * (y_max - y_min), y_max + 0.10 * (y_max - y_min))
+    
+        # ---------- KW P-value ----------
+        ax.text(0.5, 0.94, f"KW P = {kw_p:.3e}",
+                fontsize=12, ha="center", transform=ax.transAxes)
+    
+        # ---------- Group means (red dashed line) ----------
+        site_means = data.groupby("Site")[metric].mean()
+        for i, site in enumerate(site_order):
+            ax.hlines(y=site_means[site], xmin=i - 0.4, xmax=i + 0.4,
+                      colors="red", linestyles="--", linewidth=1.2)
+    
+        # ---------- Force ticks visible ----------
+        ax.tick_params(axis="x", which="both", bottom=True, labelbottom=True)
+        ax.tick_params(axis="y", which="both", left=True, labelleft=True)
+    
+        # ---------- Labels ----------
+        ax.set_title(f"{level_name} - {metric} by Site", fontsize=13)
+        ax.set_xlabel("Site")
+        ax.set_ylabel(metric)
+    
+    
+    # ============================================
+    # 4. Loop over levels: compute + plot
+    # ============================================
+    
+    for level, path in level_files.items():
+        print("\n==============================================")
+        print(f"[INFO] Processing level: {level}")
+        print("==============================================")
+    
+        df_counts = pd.read_csv(path)
+    
+        # Compute alpha diversity
+        alpha_df = compute_alpha_indices(df_counts)
+    
+        # Attach site metadata
+        alpha_site = pd.merge(alpha_df, site_table, on="Sample", how="inner")
+    
+        print("[INFO] Alpha diversity with site mapping:")
+        print(alpha_site)
+    
+        # Create multi-panel figure (2 × 2)
+        n_metrics = len(alpha_metrics)
+        ncols = 2
+        nrows = int(np.ceil(n_metrics / ncols))
+    
+        fig, axes = plt.subplots(nrows, ncols, figsize=(3.5 * ncols, 4.2 * nrows))
+        axes = np.array(axes).reshape(-1)
+    
+        # Plot each metric
+        for i, metric in enumerate(alpha_metrics):
+            plot_alpha_panel(axes[i], alpha_site, level, metric)
+    
+        # Remove unused axes
+        for j in range(n_metrics, len(axes)):
+            fig.delaxes(axes[j])
+    
+        plt.tight_layout()
+        plt.show()
+
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Alpha%20diversity%20plot.png)
 
 Step 4. Beta diversity plots
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Beta%20diversity%20plot.png)
 
-# ----------------------------------------------------------------------------------------------
-(1) Useful to yourself in the long run​
- - Include at least 2 notes to yourself about potential mistakes (that you had made during the class), that you don't want to make again.​
-(2) Clearly written and easy to follow by a peer​
- - To your future self who is likely to forget what you have done.​
- - Like a "lab notebook", will be the basis for writing a "method section" in your future publications​
-(3) Contain both Linux part and (R or Python) visualization ​​
-(4) Not the entire pipeline​
- - One or two steps of Linux​
- - One or two figures in R/Python visualization ​
-(5) Describe your output and how the visualization supports/illustrates the point (like a "result" section in a paper)
-(6) Submit the link to your own GitHub repository
+
+
+
+
+
+
+
+
+
+
+
+
