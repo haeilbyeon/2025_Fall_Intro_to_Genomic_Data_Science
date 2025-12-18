@@ -76,7 +76,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
     # 4. Done
     echo "All samples processed successfully."
 
-**Step 2. Superdeduper**
+# **Step 2. Superdeduper**
 
 NOTE: The purpose of SuperDeduper is to remove PCR and optical duplicate reads from paired-end FASTQ files generated after adapter trimming (Trim Galore Step). This step ensures that downstream analyses such as assembly or host mapping are not biased by artificially duplicated reads.
 
@@ -205,7 +205,7 @@ Once all batch script parameters and filepaths are updated in the script, naviga
 
 # [Python] Downstream analyses of microbial communities
 
-**Step 3. Alpha diversity plots**
+# **Step 3. Alpha diversity plots**
 
 NOTE: Alpha diversity analysis measures the diversity within a single sample, describing how many taxa are present (richness) and how evenly they are distributed (evenness).
 
@@ -487,7 +487,7 @@ For each level (Phylum, Class, Order, Family, Genus, Species):
 
 "_At the genus level, alpha diversity did not differ significantly among sampling sites. Shannon and Simpson indices showed similar diversity and evenness across RCR01, BRB01, and RCR0P (Kruskal–Wallis test, p > 0.05), indicating comparable community structure among sites. Likewise, richness-based estimators (Chao1 and ACE) revealed no significant site-specific differences (p > 0.05), suggesting that overall taxonomic richness was consistent across locations._"
 
-**Step 4. Beta diversity plot**
+# **Step 4. Beta diversity plot**
 
 NOTE: Beta diversity analysis measures how different microbial communities are between samples (for example, between sites), based on their composition and relative abundances.
 
