@@ -479,10 +479,12 @@ For each level (Phylum, Class, Order, Family, Genus, Species):
         plt.tight_layout()
         plt.show()
 
-
 **Figure 1. Alpha diversity of microbial communities across sampling sites at genus level.** Shannon, Simpson, Chao1, and ACE indices were calculated from Bracken abundance tables and compared among sites. Boxplots show the distribution of diversity values with individual samples overlaid as points. Red dashed lines indicate site means. Overall differences were tested using the Kruskal–Wallis test, and pairwise differences were assessed using Mann–Whitney tests.
 
 ![Image Alt](https://github.com/haeilbyeon/2025_Fall_Intro_to_Genomic_Data_Science/blob/989cb43d1c7a3c66c2b303831118c728475406b3/Alpha%20diversity%20plot.png)
+
+Result from Figure 1. 
+    At the genus level, alpha diversity did not differ significantly among sampling sites. Shannon and Simpson indices showed similar diversity and evenness across RCR01, BRB01, and RCR0P (Kruskal–Wallis test, p > 0.05), indicating comparable community structure among sites. Likewise, richness-based estimators (Chao1 and ACE) revealed no significant site-specific differences (p > 0.05), suggesting that overall taxonomic richness was consistent across locations.
 
 
 **Step 4. Beta diversity plot**
